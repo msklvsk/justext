@@ -148,7 +148,8 @@ def add_kw_tags(root):
         if node.tail:
             nodes_with_tail.append(node)
     for node in nodes_with_text:
-        if blank_text.match(node.text):
+        # disabled by msklvsk
+        if False and blank_text.match(node.text):
             node.text = None
         else:
             kw = lxml.etree.Element('kw')
@@ -156,7 +157,8 @@ def add_kw_tags(root):
             node.text = None
             node.insert(0, kw)
     for node in nodes_with_tail:
-        if blank_text.match(node.tail):
+        # disabled by msklvsk
+        if False and blank_text.match(node.tail):
             node.tail = None
         else:
             kw = lxml.etree.Element('kw')
@@ -200,6 +202,11 @@ def preprocess_html_root(html_root):
                 'footer', 'nav', 'canvas', 'svg', 'audio', 'embed', 'aside',
                 'code', 'data', 'menu', 'object', 'picture', 'pre']:
             to_be_removed.append(node)
+        
+        # msklvsk
+        if node.tag in ['noscript']:
+            to_be_removed.append(node)
+
     for node in to_be_removed:
         parent = node.getparent()
         del parent[parent.index(node)]
@@ -241,6 +248,9 @@ class SaxPragraphMaker(ContentHandler):
     def startElementNS(self, name, qname, attrs):
         dummy_uri, name = name
         self.dom.append(name)
+        # msklvsk
+        if name == 'br':
+            self.paragraph['text_nodes'].append(' ')
         if name in PARAGRAPH_TAGS or (name == 'br' and self.br):
             if name == 'br':
                 # the <br><br> is a paragraph separator and should
@@ -269,8 +279,9 @@ class SaxPragraphMaker(ContentHandler):
         self._start_new_pragraph()
 
     def characters(self, content):
-        if content.strip() == '':
-            return
+        # disabled by msklvsk        
+        # if content.strip() == '':
+        #     return
         text = re.sub("\s+", " ", content)
         self.paragraph['text_nodes'].append(text)
         words = text.strip().split()
